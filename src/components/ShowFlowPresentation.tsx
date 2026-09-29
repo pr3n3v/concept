@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SHOW_IMAGES } from '../data/showData';
+import { CLAUDE_EXPLAINER_MARKDOWN } from '../data/claudeExplainerText';
 import { generateTheNextLeaderPPT } from '../utils/generatePPT';
 import { 
   ChevronLeft, 
@@ -17,7 +18,12 @@ import {
   Clock,
   Sparkles,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Bot,
+  Copy,
+  Check,
+  Terminal,
+  FileText
 } from 'lucide-react';
 
 interface GalleryItem {
@@ -45,8 +51,10 @@ interface Slide {
 
 export const ShowFlowPresentation: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
-  const [presentationMode, setPresentationMode] = useState<'deck' | 'document'>('deck');
+  const [presentationMode, setPresentationMode] = useState<'deck' | 'document' | 'claude_dossier'>('deck');
   const [isExportingPPT, setIsExportingPPT] = useState<boolean>(false);
+  const [copiedExplainer, setCopiedExplainer] = useState<boolean>(false);
+  const [activePromptPreset, setActivePromptPreset] = useState<string | null>(null);
 
   const handleDownloadPPT = async () => {
     try {
@@ -57,6 +65,27 @@ export const ShowFlowPresentation: React.FC = () => {
     } finally {
       setIsExportingPPT(false);
     }
+  };
+
+  const handleCopyClaudeExplainer = async () => {
+    try {
+      await navigator.clipboard.writeText(CLAUDE_EXPLAINER_MARKDOWN);
+      setCopiedExplainer(true);
+      setTimeout(() => setCopiedExplainer(false), 3000);
+    } catch (err) {
+      console.error('Clipboard copy failed', err);
+    }
+  };
+
+  const handleDownloadMarkdown = () => {
+    const blob = new Blob([CLAUDE_EXPLAINER_MARKDOWN], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'THE_NEXT_LEADER_EXPLAINER_FOR_CLAUDE.md');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const slides: Slide[] = [
@@ -327,6 +356,17 @@ export const ShowFlowPresentation: React.FC = () => {
               }`}
             >
               Full Series Bible
+            </button>
+            <button
+              onClick={() => setPresentationMode('claude_dossier')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                presentationMode === 'claude_dossier'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-amber-300'
+              }`}
+            >
+              <Bot className="w-3.5 h-3.5 text-amber-400" />
+              <span>Explainer for Claude</span>
             </button>
           </div>
         </div>
@@ -716,7 +756,7 @@ export const ShowFlowPresentation: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
+      ) : presentationMode === 'document' ? (
         /* Full Series Bible Document View */
         <div className="bg-[#0F172A] border border-slate-800 rounded-xl p-6 sm:p-8 space-y-10">
           <div className="space-y-3 pb-6 border-b border-slate-800">
@@ -898,6 +938,145 @@ export const ShowFlowPresentation: React.FC = () => {
             <p className="text-sm text-slate-300 leading-relaxed">
               Unlike traditional entertainment reality shows where tasks are artificial gimmicks, every outdoor mission on <em>The Next Leader</em> is paired with a direct ₹25 Lakh capital grant and permanent civic infrastructure for the host community. From community solar deep-aquifer pumps in Marathwada to smokeless ceramic kilns in Dharavi, automated APMC mandi moisture labs in Karnal, and flood rescue catamarans in Majuli, the show leaves enduring civic progress in every state it visits.
             </p>
+          </div>
+        </div>
+      ) : (
+        /* Claude Explainer Dossier View */
+        <div className="space-y-6">
+          {/* Hero Banner & Actions */}
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 uppercase tracking-widest">
+                <Bot className="w-4 h-4" />
+                <span>Anthropic Claude Knowledge Dossier & Master Prompt</span>
+              </div>
+              <h2 className="text-xl font-bold font-display text-white">
+                Everything Claude Needs to Know About "The Next Leader"
+              </h2>
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                Copy this complete knowledge base into Claude to write scripts, simulate backroom votes, design new emergency crises, draft high-stakes floor debates, or extend the app’s code and game theory.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto">
+              <button
+                onClick={handleCopyClaudeExplainer}
+                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg shadow-lg cursor-pointer transition-all"
+              >
+                {copiedExplainer ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-950" />
+                    <span>Copied Dossier!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-slate-950" />
+                    <span>Copy Full Explainer</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleDownloadMarkdown}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg cursor-pointer transition-all"
+                title="Download as .md file"
+              >
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Download .md</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Claude Prompt Starters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div 
+              onClick={async () => {
+                const prompt = `Based on the show bible for The Next Leader, write a fiery 4-minute parliamentary debate in the Senate Chamber between Adv. Aarav Singhania (SSM) and Sardar Gurdeep Singh Gill (KSG) on a controversial agricultural futures bill. Include Speaker gavel interjections and backroom whispers from Priya Sundaram.`;
+                await navigator.clipboard.writeText(prompt);
+                setActivePromptPreset('debate');
+                setTimeout(() => setActivePromptPreset(null), 2500);
+              }}
+              className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer group space-y-2"
+            >
+              <div className="flex items-center justify-between text-xs text-amber-400 font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Terminal className="w-3.5 h-3.5" />
+                  Showrunner Script
+                </span>
+                <span className="text-[10px] text-slate-400 group-hover:text-amber-300">
+                  {activePromptPreset === 'debate' ? 'Copied Prompt!' : 'Click to Copy'}
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white group-hover:text-amber-200">
+                Write a 4-Minute Sansad Chamber Clash
+              </h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Asks Claude to script a fiery floor clash between Aarav Singhania and Gurdeep Singh Gill with parliamentary decorum and whips.
+              </p>
+            </div>
+
+            <div 
+              onClick={async () => {
+                const prompt = `Simulate Saturday Night Gupt Matdaan in The Next Leader. Rashtriya Vikas Morcha wants to secretly nominate Rohan Banerjee. KSG suspects the betrayal. Write the backroom war room dialogue and the dramatic vote tally inside the marble vault.`;
+                await navigator.clipboard.writeText(prompt);
+                setActivePromptPreset('nomination');
+                setTimeout(() => setActivePromptPreset(null), 2500);
+              }}
+              className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer group space-y-2"
+            >
+              <div className="flex items-center justify-between text-xs text-amber-400 font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Vote className="w-3.5 h-3.5" />
+                  Gupt Matdaan Simulation
+                </span>
+                <span className="text-[10px] text-slate-400 group-hover:text-amber-300">
+                  {activePromptPreset === 'nomination' ? 'Copied Prompt!' : 'Click to Copy'}
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white group-hover:text-amber-200">
+                Simulate Secret Nomination Night Betrayal
+              </h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Asks Claude to roleplay the secret caucus whips and the high-tension wax-sealed ballot reveal in the marble chamber.
+              </p>
+            </div>
+
+            <div 
+              onClick={async () => {
+                const prompt = `Design a brand new 3 AM Press Crisis Room scenario for The Next Leader set during a sudden artificial intelligence power grid collapse in Hyderabad. Provide the emergency policy options, 3 aggressive questions from senior editors, and the PCP scoring breakdown.`;
+                await navigator.clipboard.writeText(prompt);
+                setActivePromptPreset('crisis');
+                setTimeout(() => setActivePromptPreset(null), 2500);
+              }}
+              className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer group space-y-2"
+            >
+              <div className="flex items-center justify-between text-xs text-amber-400 font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5" />
+                  Crisis Room Design
+                </span>
+                <span className="text-[10px] text-slate-400 group-hover:text-amber-300">
+                  {activePromptPreset === 'crisis' ? 'Copied Prompt!' : 'Click to Copy'}
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white group-hover:text-amber-200">
+                Generate a 3 AM Emergency Press Scrum
+              </h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Asks Claude to create a complete timed simulation with real-world ethical dilemmas and hostile journalist cross-examinations.
+              </p>
+            </div>
+          </div>
+
+          {/* Dossier Code/Text Viewer */}
+          <div className="rounded-xl border border-slate-800 bg-[#0B0F19] overflow-hidden">
+            <div className="px-4 py-2.5 bg-[#090D14] border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span className="font-mono text-amber-400">/EXPLAINER_FOR_CLAUDE.md</span>
+              <span className="text-[11px] text-slate-500">Ready for Claude Sonnet / Opus / Haiku</span>
+            </div>
+            <pre className="p-6 text-xs text-slate-300 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[700px] selection:bg-amber-400 selection:text-slate-950">
+              {CLAUDE_EXPLAINER_MARKDOWN}
+            </pre>
           </div>
         </div>
       )}
