@@ -1,0 +1,8 @@
+{
+  "name": "Remix The Next Leader",
+  "description": "Executive reality show dashboard and series bible tracking 26 political contestants, daily mental challenges, outdoor immunity missions, viewer polling, and house eliminations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
